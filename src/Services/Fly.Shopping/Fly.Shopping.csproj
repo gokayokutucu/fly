@@ -14,7 +14,10 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\Fly.Application\Fly.Application.csproj" />
     <ProjectReference Include="..\Fly.Domain\Fly.Domain.csproj" />
+    <ProjectReference Include="..\Fly.Infrastructure\Fly.Infrastructure.csproj" />
+    <ProjectReference Include="..\FLy.Persistence\FLy.Persistence.csproj" />
   </ItemGroup>
 
 </Project>

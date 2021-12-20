@@ -7,12 +7,12 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="MongoDB.Bson" Version="2.14.1" />
-    <PackageReference Include="MongoDB.Driver" Version="2.14.1" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="6.0.0" />
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Fly.Common\Fly.Common.csproj" />
+    <ProjectReference Include="..\Fly.Application\Fly.Application.csproj" />
+    <ProjectReference Include="..\Fly.Domain\Fly.Domain.csproj" />
   </ItemGroup>
 
 </Project>

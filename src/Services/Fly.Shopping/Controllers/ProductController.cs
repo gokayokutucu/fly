@@ -1,17 +1,13 @@
+using Fly.Domain.Aggreagates;
 using Fly.Domain.Entities;
-using Fly.Domain.Services;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Fly.Shopping.Controllers
 {
     [ApiController]
-    [Route("[controller]")]
+    [Route("products")]
     public class ProductController : ControllerBase
     {
-        private static readonly string[] Summaries = new[]
-        {
-        "Freezing", "Bracing", "Chilly", "Cool", "Mild", "Warm", "Balmy", "Hot", "Sweltering", "Scorching"
-    };
         private readonly IProductService _productService;
         private readonly ILogger<ProductController> _logger;
 
@@ -26,15 +22,9 @@ namespace Fly.Shopping.Controllers
        (List<Product>)await _productService.GetAsync();
 
         [HttpGet("{id:length(24)}")]
-        public IEnumerable<WeatherForecast> Get(string id)
+        public async Task<Product> GetAsync(string id)
         {
-            return Enumerable.Range(1, 5).Select(index => new WeatherForecast
-            {
-                Date = DateTime.Now.AddDays(index),
-                TemperatureC = Random.Shared.Next(-20, 55),
-                Summary = Summaries[Random.Shared.Next(Summaries.Length)]
-            })
-            .ToArray();
+            return await _productService.GetAsync(id);
         }
 
         [HttpPost]
@@ -42,7 +32,37 @@ namespace Fly.Shopping.Controllers
         {
             await _productService.CreateAsync(data);
 
-            return CreatedAtAction(nameof(Get), new { id = data.Id }, data);
+            return Ok(data.Id);
+        }
+
+        [HttpPut]
+        public async Task<IActionResult> Update(Product data)
+        {
+            var product = await _productService.GetAsync(data.Id);
+
+            if (product is null)
+            {
+                return NotFound();
+            }
+
+            await _productService.UpdateAsync(data);
+
+            return NoContent();
+        }
+
+        [HttpDelete("{id:length(24)}")]
+        public async Task<IActionResult> Delete(string id)
+        {
+            var product = await _productService.GetAsync(id);
+
+            if (product is null)
+            {
+                return NotFound();
+            }
+
+            await _productService.DeleteAsync(id);
+
+            return NoContent();
         }
     }
 }

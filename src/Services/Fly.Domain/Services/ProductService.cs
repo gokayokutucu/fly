@@ -1,18 +1,42 @@
-﻿using Fly.Domain.Entities;
+﻿using Fly.Domain.Aggreagates;
+using Fly.Domain.Entities;
 
 namespace Fly.Domain.Services
 {
     public class ProductService : IProductService
     {
-        public async Task<IList<Product>> GetAsync()
+        private readonly IProductRepository _productRepo;
+
+        public ProductService(IProductRepository productRepo)
         {
-            var products = new List<Product>();
-            return await Task.FromResult(products);
+            _productRepo = productRepo;
         }
 
-        public async Task CreateAsync(Product data)
+        public async Task<List<Product>> GetAsync(CancellationToken cancellationToken = default)
         {
-            throw new NotImplementedException();
+            var list = await _productRepo.UnitOfWork.GetAllAsync<Product>(cancellationToken:cancellationToken);
+
+            return list.ToList();
+        }
+
+        public async Task<Product> GetAsync(string id, CancellationToken cancellationToken = default)
+        {
+            return await _productRepo.UnitOfWork.GetAsync<Product>(id, cancellationToken);
+        }
+
+        public async Task CreateAsync(Product data, CancellationToken cancellationToken = default)
+        {
+            await _productRepo.UnitOfWork.SaveAsync(data, Common.RecordOption.Insert, null, null, cancellationToken);
+        }
+
+        public async Task UpdateAsync(Product data, CancellationToken cancellationToken = default)
+        {
+            await _productRepo.UnitOfWork.SaveAsync(data, Common.RecordOption.Update, null, null, cancellationToken);
+        }
+
+        public async Task DeleteAsync(string id, CancellationToken cancellationToken = default)
+        {
+            await _productRepo.UnitOfWork.DeleteAsync<Product>(id, cancellationToken);
         }
     }
 }

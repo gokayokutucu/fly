@@ -1,5 +1,6 @@
 ﻿using Fly.Shopping.Helper;
 using MongoDB.Bson;
+using MongoDB.Bson.Serialization.Attributes;
 
 namespace Fly.Domain.Abstracts
 {
@@ -14,10 +15,10 @@ namespace Fly.Domain.Abstracts
             Version = version;
         }
 
-        public string Id { get; }
-        public string ModifiedBy { get; }
-        public DateTime? LastModifiedDate{ get; }
-        public bool IsDeleted{ get; }
-        public long Version{ get; }
+        public string Id { get; set; }
+        public string ModifiedBy { get; set; }
+        public DateTime? LastModifiedDate{ get; set; }
+        public bool IsDeleted{ get; set; }
+        public long Version{ get; set; }
     }
 }
