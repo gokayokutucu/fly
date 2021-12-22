@@ -1,5 +1,6 @@
 ﻿using AutoMapper;
 using Fly.Application.DomainEvents.Products.Dtos;
+using Fly.Common;
 using Fly.Common.Extensions;
 using Fly.Domain.Aggreagates;
 using MediatR;
@@ -9,13 +10,20 @@ namespace Fly.Application.DomainEvents.Products.Queries.GetProduct
 {
     public class GetProductByIdQueryHandler : IRequestHandler<GetProductByIdQuery, ProductDto>
     {
+        private readonly ICacheManager _cacheManager;
         private readonly IDistributedCache _distributedCache;
         private readonly IMapper _mapper;
         private readonly IProductService _productService;
         private readonly ICategoryService _categoryService;
 
-        public GetProductByIdQueryHandler(IDistributedCache distributedCache, IMapper mapper, IProductService productService, ICategoryService categoryService)
+        public GetProductByIdQueryHandler(
+            ICacheManager cacheManager,
+            IDistributedCache distributedCache, 
+            IMapper mapper, 
+            IProductService productService, 
+            ICategoryService categoryService)
         {
+            _cacheManager = cacheManager;
             _distributedCache = distributedCache;
             _mapper = mapper;
             _productService = productService;
@@ -25,7 +33,9 @@ namespace Fly.Application.DomainEvents.Products.Queries.GetProduct
         public async Task<ProductDto> Handle(GetProductByIdQuery request, CancellationToken cancellationToken)
         {
             var keyName = $"product_{request.Id}";
-            ProductDto dto = await _distributedCache.GetAsync<ProductDto>(keyName)
+            //ProductDto dto = await _distributedCache.GetAsync<ProductDto>(keyName)
+            //    ?? await GetProduct(keyName, request, cancellationToken);
+            ProductDto dto = await _cacheManager.GetAsync<ProductDto>(keyName)
                 ?? await GetProduct(keyName, request, cancellationToken);
 
             return dto;
@@ -46,7 +56,7 @@ namespace Fly.Application.DomainEvents.Products.Queries.GetProduct
                 Category = _mapper.Map<CategoryDto>(entityCategory)
             };
 
-            await _distributedCache.SetAsync(keyName, dto, cancellationToken);
+            await _cacheManager.SetExpireAsync(keyName, dto, TimeSpan.FromMinutes(5));
 
             return dto;
         }

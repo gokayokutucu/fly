@@ -2,9 +2,11 @@ using Fly.Persistence;
 using Fly.Infrastructure;
 using Planet.MongoDbCore;
 using Fly.Application;
+using Fly.Common;
 
 var builder = WebApplication.CreateBuilder(args);
 
+builder.Services.AddSingleton<ICacheManager, CacheManager>();
 builder.Services.AddStackExchangeRedisCache(option =>
 {
     option.Configuration = "127.0.0.1";
