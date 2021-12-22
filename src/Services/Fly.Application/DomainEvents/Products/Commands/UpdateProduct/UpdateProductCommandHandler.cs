@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
 using Fly.Application.DomainEvents.Products.Dtos;
 using Fly.Application.Exceptions;
+using Fly.Common;
 using Fly.Common.Extensions;
 using Fly.Domain.Aggreagates;
 using Fly.Domain.Entities;
@@ -13,14 +14,14 @@ namespace Fly.Application.DomainEvents.Products.Commands.UpdateProduct
     public class UpdateProductCommandHandler : IRequestHandler<UpdateProductCommand, Unit>
     {
         private readonly ILogger _logger;
-        private readonly IDistributedCache _distributedCache;
+        private readonly ICacheManager _cacheManager;
         private readonly IMapper _mapper;
         private readonly IProductService _service;
 
-        public UpdateProductCommandHandler(ILogger<UpdateProductCommandHandler> logger, IDistributedCache distributedCache, IMapper mapper, IProductService service)
+        public UpdateProductCommandHandler(ILogger<UpdateProductCommandHandler> logger, ICacheManager cacheManager, IMapper mapper, IProductService service)
         {
             _logger = logger;
-            _distributedCache = distributedCache;
+            _cacheManager = cacheManager;
             _mapper = mapper;
             _service = service;
         }
@@ -38,7 +39,8 @@ namespace Fly.Application.DomainEvents.Products.Commands.UpdateProduct
 
                 await _service.UpdateAsync(entity);
 
-                await _distributedCache.SetAsync(keyName, request.ProductDto, cancellationToken);
+                //await _distributedCache.SetAsync(keyName, request.ProductDto, cancellationToken);
+                await _cacheManager.SetExpireAsync(keyName, _mapper.Map<ProductDto>(request.ProductDto), TimeSpan.FromMinutes(5));
 
                 return Unit.Value;
             }

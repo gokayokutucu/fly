@@ -15,20 +15,17 @@ namespace Fly.Application.DomainEvents.Products.Commands.AddProduct
     {
         private readonly ILogger _logger;
         private readonly ICacheManager _cacheManager;
-        private readonly IDistributedCache _distributedCache;
         private readonly IMapper _mapper;
         private readonly IProductService _service;
 
         public CreateProductCommandHandler(
             ILogger<CreateProductCommandHandler> logger,
             ICacheManager cacheManager,
-            IDistributedCache distributedCache, 
             IMapper mapper, 
             IProductService service)
         {
             _logger = logger;
             _cacheManager = cacheManager;
-            _distributedCache = distributedCache;
             _mapper = mapper;
             _service = service;
         }
