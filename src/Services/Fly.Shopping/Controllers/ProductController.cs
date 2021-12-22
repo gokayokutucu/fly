@@ -1,5 +1,9 @@
-using Fly.Domain.Aggreagates;
-using Fly.Domain.Entities;
+using Fly.Application.DomainEvents.Products.Commands.DeleteProduct;
+using Fly.Application.DomainEvents.Products.Commands.UpdateProduct;
+using Fly.Application.DomainEvents.Products.Dtos;
+using Fly.Application.DomainEvents.Products.Queries.GetProduct;
+using Fly.Application.DomainEvents.Products.Queries.GetProducts;
+using MediatR;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Fly.Shopping.Controllers
@@ -8,59 +12,76 @@ namespace Fly.Shopping.Controllers
     [Route("products")]
     public class ProductController : ControllerBase
     {
-        private readonly IProductService _productService;
+        private readonly IMediator _mediator;
         private readonly ILogger<ProductController> _logger;
 
-        public ProductController(IProductService productService, ILogger<ProductController> logger)
+        public ProductController(IMediator mediator, ILogger<ProductController> logger)
         {
-            _productService = productService;
+            _mediator = mediator;
             _logger = logger;
         }
 
         [HttpGet]
-        public async Task<List<Product>> GetAsync() =>
-       (List<Product>)await _productService.GetAsync();
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        public async Task<List<ProductDto>> GetAsync() => await _mediator.Send(new GetAllProductsQuery());
 
         [HttpGet("{id:length(24)}")]
-        public async Task<Product> GetAsync(string id)
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        public async Task<ProductDto> GetAsync(string id) => await _mediator.Send(new GetProductByIdQuery()
         {
-            return await _productService.GetAsync(id);
-        }
+            Id = id
+        });
 
         [HttpPost]
-        public async Task<IActionResult> Post(Product data)
+        [ProducesResponseType(StatusCodes.Status201Created)]
+        public async Task<IActionResult> Post(ProductDto data)
         {
-            await _productService.CreateAsync(data);
-
+            await _mediator.Send(data);
             return Ok(data.Id);
         }
 
         [HttpPut]
-        public async Task<IActionResult> Update(Product data)
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        public async Task<IActionResult> Update(ProductDto data)
         {
-            var product = await _productService.GetAsync(data.Id);
+            var product = await _mediator.Send(new GetProductByIdQuery()
+            {
+                Id = data.Id
+            });
 
             if (product is null)
             {
                 return NotFound();
             }
 
-            await _productService.UpdateAsync(data);
+            await _mediator.Send(new UpdateProductCommand()
+            {
+                ProductDto = data
+            });
 
             return NoContent();
         }
 
         [HttpDelete("{id:length(24)}")]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
         public async Task<IActionResult> Delete(string id)
         {
-            var product = await _productService.GetAsync(id);
+            var product = await _mediator.Send(new GetProductByIdQuery()
+            {
+                Id = id
+            });
 
             if (product is null)
             {
                 return NotFound();
             }
 
-            await _productService.DeleteAsync(id);
+            await _mediator.Send(new DeleteProductCommand()
+            {
+                Id = product.Id
+            });
 
             return NoContent();
         }

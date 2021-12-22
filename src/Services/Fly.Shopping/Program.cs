@@ -1,8 +1,15 @@
 using Fly.Persistence;
 using Fly.Infrastructure;
 using Planet.MongoDbCore;
+using Fly.Application;
 
 var builder = WebApplication.CreateBuilder(args);
+
+builder.Services.AddStackExchangeRedisCache(option =>
+{
+    option.Configuration = "127.0.0.1";
+    option.InstanceName = "master";
+});
 
 // Add services to the container.
 var contextConfiguration = builder.Configuration.GetSection("ConnectionStrings")
@@ -11,6 +18,8 @@ var contextConfiguration = builder.Configuration.GetSection("ConnectionStrings")
 
 builder.Services.AddDatabaseContexts(builder.Configuration);
 builder.Services.AddInfrastructure();
+builder.Services.AddApplication();
+
 
 builder.Services.AddControllers();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
