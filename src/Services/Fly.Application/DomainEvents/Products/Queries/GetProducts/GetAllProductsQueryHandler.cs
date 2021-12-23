@@ -1,5 +1,6 @@
 ﻿using AutoMapper;
 using Fly.Application.DomainEvents.Products.Dtos;
+using Fly.Common;
 using Fly.Domain.Aggreagates;
 using MediatR;
 
@@ -7,12 +8,15 @@ namespace Fly.Application.DomainEvents.Products.Queries.GetProducts
 {
     public class GetAllProductsQueryHandler : IRequestHandler<GetAllProductsQuery, List<ProductDto>>
     {
+        private readonly ICacheManager _cacheManager;
         private readonly IMapper _mapper;
         private readonly IProductService _productService;
         private readonly ICategoryService _categoryService;
 
-        public GetAllProductsQueryHandler(IMapper mapper, IProductService productService, ICategoryService categoryService)
+
+        public GetAllProductsQueryHandler(ICacheManager cacheManager, IMapper mapper, IProductService productService, ICategoryService categoryService)
         {
+            _cacheManager = cacheManager;
             _mapper = mapper;
             _productService = productService;
             _categoryService = categoryService;
@@ -20,27 +24,52 @@ namespace Fly.Application.DomainEvents.Products.Queries.GetProducts
 
         public async Task<List<ProductDto>> Handle(GetAllProductsQuery request, CancellationToken cancellationToken)
         {
-            var entityProducts = await _productService.GetAsync();
+            var keyName = nameof(GetAllProductsQuery);
+            List<ProductDto> dtos = await _cacheManager.GetAsync<List<ProductDto>>(keyName);
 
-            var productDtos = new List<ProductDto>();
+            var count = await _productService.CountAsync();
 
-            await Parallel.ForEachAsync(entityProducts, async (entityProduct, cancellationToken) =>
+            if (dtos is null || dtos?.Count != count)
+                dtos = await GetProducts(keyName);
+
+            return dtos;
+
+        }
+
+        private async Task<List<ProductDto>> GetProducts(string keyName)
+        {
+            try
             {
-                var entityCategory = await _categoryService.GetAsync(entityProduct.CategoryId);
+                var entityProducts = await _productService.GetAsync();
 
-                var category = _mapper.Map<CategoryDto>(entityCategory);
-                productDtos.Add(new ProductDto
+                var productDtos = new List<ProductDto>();
+
+                await Parallel.ForEachAsync(entityProducts, async (entityProduct, cancellationToken) =>
                 {
-                    Id = entityProduct.Id,
-                    Name = entityProduct.Name,
-                    Description = entityProduct.Description,
-                    Currency = entityProduct.Currency,
-                    Price = entityProduct.Price,
-                    Category = category
-                });
-            });
+                    var entityCategory = await _categoryService.GetAsync(entityProduct.CategoryId);
 
-            return productDtos;
+                    var category = _mapper.Map<CategoryDto>(entityCategory);
+                    productDtos.Add(new ProductDto
+                    {
+                        Id = entityProduct.Id,
+                        Name = entityProduct.Name,
+                        Description = entityProduct.Description,
+                        Currency = entityProduct.Currency,
+                        Price = entityProduct.Price,
+                        CategoryId = category.Id,
+                        Category = category
+                    });
+                });
+
+                if(productDtos.Any())
+                    await _cacheManager.SetExpireAsync(keyName, productDtos, TimeSpan.FromMinutes(5));
+
+                return productDtos;
+            }
+            catch (Exception)
+            {
+                throw;
+            }           
         }
     }
 }
