@@ -3,7 +3,7 @@ using MediatR;
 
 namespace Fly.Application.DomainEvents.Products.Commands.AddProduct
 {
-    public class CreateProductCommand : IRequest<Unit>
+    public class CreateProductCommand : IRequest<string>
     {
         public ProductDto ProductDto { get; set; }
     }
