@@ -7,13 +7,15 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Fly.Shopping", "src\Service
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Fly.Domain", "src\Services\Fly.Domain\Fly.Domain.csproj", "{91D9C01E-EC7A-41ED-8B3B-6965DD09F476}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Fly.Common", "src\Services\Fly.Common\Fly.Common.csproj", "{9B4A8789-598B-43E4-936C-EA6F131EECB8}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Fly.Common", "src\Services\Fly.Common\Fly.Common.csproj", "{9B4A8789-598B-43E4-936C-EA6F131EECB8}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FLy.Persistence", "src\Services\FLy.Persistence\FLy.Persistence.csproj", "{E76F79F6-4502-4D78-9BD3-B5CD3AC4DF2A}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FLy.Persistence", "src\Services\FLy.Persistence\FLy.Persistence.csproj", "{E76F79F6-4502-4D78-9BD3-B5CD3AC4DF2A}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Fly.Application", "src\Services\Fly.Application\Fly.Application.csproj", "{3D418C18-EA1E-4CFE-8A4F-AC4E59C95626}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Fly.Application", "src\Services\Fly.Application\Fly.Application.csproj", "{3D418C18-EA1E-4CFE-8A4F-AC4E59C95626}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Fly.Infrastructure", "src\Services\Fly.Infrastructure\Fly.Infrastructure.csproj", "{1F8993A7-FD30-4176-A3AC-511BE71DD910}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Fly.Infrastructure", "src\Services\Fly.Infrastructure\Fly.Infrastructure.csproj", "{1F8993A7-FD30-4176-A3AC-511BE71DD910}"
+EndProject
+Project("{E53339B2-1760-4266-BCC7-CA923CBCF16C}") = "docker-compose", "docker-compose.dcproj", "{2BB88647-63DB-412D-8636-BC3003719CA5}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -45,6 +47,10 @@ Global
 		{1F8993A7-FD30-4176-A3AC-511BE71DD910}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{1F8993A7-FD30-4176-A3AC-511BE71DD910}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{1F8993A7-FD30-4176-A3AC-511BE71DD910}.Release|Any CPU.Build.0 = Release|Any CPU
+		{2BB88647-63DB-412D-8636-BC3003719CA5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2BB88647-63DB-412D-8636-BC3003719CA5}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2BB88647-63DB-412D-8636-BC3003719CA5}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2BB88647-63DB-412D-8636-BC3003719CA5}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

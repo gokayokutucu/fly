@@ -1,6 +1,7 @@
 using Fly.Domain.Aggreagates;
 using Fly.Domain.Entities;
 using Microsoft.AspNetCore.Mvc;
+using Planet.MongoDbCore;
 
 namespace Fly.Shopping.Controllers
 {
@@ -10,17 +11,34 @@ namespace Fly.Shopping.Controllers
     {
         private readonly ICategoryService _categoryService;
         private readonly ILogger<CategoryController> _logger;
+        private readonly IConfiguration _config;
 
-        public CategoryController(ICategoryService categoryService, ILogger<CategoryController> logger)
+        public CategoryController(ICategoryService categoryService, ILogger<CategoryController> logger, IConfiguration config)
         {
             _categoryService = categoryService;
             _logger = logger;
+            _config = config;
         }
 
         [HttpGet]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public async Task<List<Category>> GetAsync() => await _categoryService.GetAsync();
+
+        //[HttpGet]
+        //[ProducesResponseType(StatusCodes.Status200OK)]
+        //[ProducesResponseType(StatusCodes.Status400BadRequest)]
+        //public async Task<dynamic> GetAsync()
+        //{
+        //    var conf = _config.GetSection("ConnectionStrings")
+        //        .GetSection("MongoDbConnection")
+        //        .Get<MongoDbContextConfiguration>();
+        //    return new
+        //    {
+        //        Url = conf.Url,
+        //        Cache = _config["CacheConnection"].ToString()
+        //    };
+        //}
 
         [HttpGet("{id:length(24)}")]
         public async Task<Category> GetAsync(string id)

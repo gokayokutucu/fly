@@ -1,8 +1,11 @@
+using AutoMapper;
+using Fly.Application.DomainEvents.Products.Commands.AddProduct;
 using Fly.Application.DomainEvents.Products.Commands.DeleteProduct;
 using Fly.Application.DomainEvents.Products.Commands.UpdateProduct;
 using Fly.Application.DomainEvents.Products.Dtos;
 using Fly.Application.DomainEvents.Products.Queries.GetProduct;
 using Fly.Application.DomainEvents.Products.Queries.GetProducts;
+using Fly.Application.DomainEvents.Products.ViewModels;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 
@@ -12,42 +15,51 @@ namespace Fly.Shopping.Controllers
     [Route("products")]
     public class ProductController : ControllerBase
     {
+        private readonly IMapper _mapper;
         private readonly IMediator _mediator;
         private readonly ILogger<ProductController> _logger;
 
-        public ProductController(IMediator mediator, ILogger<ProductController> logger)
+        public ProductController( IMapper mapper, IMediator mediator, ILogger<ProductController> logger)
         {
+            _mapper = mapper;
             _mediator = mediator;
             _logger = logger;
         }
 
         [HttpGet]
         [ProducesResponseType(StatusCodes.Status200OK)]
-        public async Task<List<ProductDto>> GetAsync() => await _mediator.Send(new GetAllProductsQuery());
+        public async Task<List<GetProductViewModel>> GetAsync()
+        {
+            var dtos = await _mediator.Send(new GetAllProductsQuery());
+            var result = _mapper.Map<List<GetProductViewModel>>(dtos);
+            return result;
+        } 
 
         [HttpGet("{id:length(24)}")]
         [ProducesResponseType(StatusCodes.Status200OK)]
-        public async Task<ProductDto> GetAsync(string id) => await _mediator.Send(new GetProductByIdQuery()
+        public async Task<GetProductViewModel> GetAsync(string id) => _mapper.Map<GetProductViewModel>(await _mediator.Send(new GetProductByIdQuery()
         {
             Id = id
-        });
+        }));
 
         [HttpPost]
         [ProducesResponseType(StatusCodes.Status201Created)]
-        public async Task<IActionResult> Post(ProductDto data)
+        public async Task<IActionResult> Post(PostProductViewModel model)
         {
-            await _mediator.Send(data);
-            return Ok(data.Id);
+            return Ok(await _mediator.Send(new CreateProductCommand()
+            {
+                ProductDto = _mapper.Map<ProductDto>(model)
+            }));
         }
 
         [HttpPut]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
-        public async Task<IActionResult> Update(ProductDto data)
+        public async Task<IActionResult> Update(PutProductViewModel model)
         {
             var product = await _mediator.Send(new GetProductByIdQuery()
             {
-                Id = data.Id
+                Id = model.Id
             });
 
             if (product is null)
@@ -57,7 +69,7 @@ namespace Fly.Shopping.Controllers
 
             await _mediator.Send(new UpdateProductCommand()
             {
-                ProductDto = data
+                ProductDto = _mapper.Map<ProductDto>(model)
             });
 
             return NoContent();

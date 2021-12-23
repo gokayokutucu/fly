@@ -18,12 +18,7 @@ namespace Fly.Persistence
             services.AddSingleton<IFlyMongoDbContext>(s =>
                 new FlyMongoDbContext(
                     config.DatabaseName,
-                    //config.Url,
-                    s.GetService<ILogger<FlyMongoDbContext>>()));
-            services.AddSingleton<IFlyMongoDbContext>(s =>
-                new FlyMongoDbContext(
-                    config.DatabaseName,
-                    //config.Url,
+                    config.Url,
                     s.GetService<ILogger<FlyMongoDbContext>>()));
 
             return services;
