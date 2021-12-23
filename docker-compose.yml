@@ -1,0 +1,32 @@
+version: '3.4'
+
+services:
+  fly.shopping:
+    image: ${DOCKER_REGISTRY-}flyshopping
+    build:
+      context: .
+      dockerfile: src/Services/Fly.Shopping/Dockerfile
+    environment:
+      - "ConnectionStrings:MongoDbConnection:url=mongodb://productdb:27017"
+      - "CacheConnection=productcaching:6379"
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_URLS=https://+:443;http://+:80
+    volumes:
+      - ${APPDATA}/Microsoft/UserSecrets:/root/.microsoft/usersecrets:ro
+      - ${APPDATA}/ASP.NET/Https:/root/.aspnet/https:ro
+    ports:
+      - "49154:80"
+      - "49153:443"
+    depends_on: 
+      - productcaching
+      - productdb
+  productdb:
+    container_name: productdb
+    image: "mongo"
+    ports:
+      - "27017:27017"
+  productcaching:
+    container_name: productcaching
+    image: "redis:alpine"
+    ports:
+      - "6379:6379"

@@ -7,10 +7,15 @@ EXPOSE 443
 
 FROM mcr.microsoft.com/dotnet/sdk:6.0 AS build
 WORKDIR /src
-COPY ["Fly.Shopping/Fly.Shopping.csproj", "Fly.Shopping/"]
-RUN dotnet restore "Fly.Shopping/Fly.Shopping.csproj"
+COPY ["src/Services/Fly.Shopping/Fly.Shopping.csproj", "src/Services/Fly.Shopping/"]
+COPY ["src/Services/FLy.Persistence/FLy.Persistence.csproj", "src/Services/FLy.Persistence/"]
+COPY ["src/Services/Fly.Application/Fly.Application.csproj", "src/Services/Fly.Application/"]
+COPY ["src/Services/Fly.Domain/Fly.Domain.csproj", "src/Services/Fly.Domain/"]
+COPY ["src/Services/Fly.Common/Fly.Common.csproj", "src/Services/Fly.Common/"]
+COPY ["src/Services/Fly.Infrastructure/Fly.Infrastructure.csproj", "src/Services/Fly.Infrastructure/"]
+RUN dotnet restore "src/Services/Fly.Shopping/Fly.Shopping.csproj"
 COPY . .
-WORKDIR "/src/Fly.Shopping"
+WORKDIR "/src/src/Services/Fly.Shopping"
 RUN dotnet build "Fly.Shopping.csproj" -c Release -o /app/build
 
 FROM build AS publish
