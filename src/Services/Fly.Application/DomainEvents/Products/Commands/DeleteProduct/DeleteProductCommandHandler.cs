@@ -1,4 +1,6 @@
-﻿using Fly.Common;
+﻿using Fly.Application.DomainEvents.Products.Dtos;
+using Fly.Application.DomainEvents.Products.Queries.GetProducts;
+using Fly.Common;
 using Fly.Domain.Aggreagates;
 using MediatR;
 
@@ -27,12 +29,28 @@ namespace Fly.Application.DomainEvents.Products.Commands.DeleteProduct
                 var keyName = $"product_{request.Id}";
                 await _cacheManager.DeleteAsync(keyName);
 
+                await UpdateCachedProductList(request.Id);
+
                 return Unit.Value;
             }
             catch (Exception)
             {
                 throw;
             }            
+        }
+
+        private async Task UpdateCachedProductList(string id)
+        {
+            var dtos = await _cacheManager.GetAsync<List<ProductDto>>(nameof(GetAllProductsQuery));
+
+            var item = dtos.SingleOrDefault(x => x.Id == id);
+
+            if (item != null)
+            {
+                dtos.Remove(item);
+
+                await _cacheManager.SetExpireAsync(nameof(GetAllProductsQuery), dtos, TimeSpan.FromMinutes(5));
+            }
         }
     }
 }
