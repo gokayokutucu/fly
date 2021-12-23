@@ -33,7 +33,17 @@ namespace Fly.Common
             InitializeAsync().ConfigureAwait(false).GetAwaiter();
 
         }
-        public ConnectionMultiplexer Connection { get { return _connection; } }
+        public ConnectionMultiplexer Connection
+        {
+            get
+            {
+                if (_connection == null)
+                {
+                    CreateConnectionAsync().ConfigureAwait(false).GetAwaiter();
+                }
+                return _connection;
+            }
+        }
         private async Task InitializeAsync()
         {
             if (_didInitialize)
@@ -43,7 +53,7 @@ namespace Fly.Common
             _connection = await CreateConnectionAsync();
             _didInitialize = true;
         }
-        
+
         // This method may return null if it fails to acquire the semaphore in time.
         // Use the return value to update the "connection" field
         private async Task<ConnectionMultiplexer> CreateConnectionAsync()
@@ -94,7 +104,7 @@ namespace Fly.Common
                 // Ignore any errors from the oldConnection
             }
         }
-        
+
         /// <summary>
         /// Force a new ConnectionMultiplexer to be created.
         /// NOTES:
@@ -166,7 +176,7 @@ namespace Fly.Common
                 _reconnectSemaphore.Release();
             }
         }
-       
+
         // In real applications, consider using a framework such as
         // Polly to make it easier to customize the retry approach.
         private async Task<T> BasicRetryAsync<T>(Func<T> func)
@@ -194,17 +204,21 @@ namespace Fly.Common
                 }
             }
         }
-        
+
         public Task<IDatabase> GetDatabaseAsync()
         {
-            return BasicRetryAsync(() => Connection.GetDatabase());
+            return BasicRetryAsync(() => {
+                if(Connection == null)
+                    CreateConnectionAsync().ConfigureAwait(false).GetAwaiter();
+                return Connection.GetDatabase();
+            });
         }
 
         public Task<System.Net.EndPoint[]> GetEndPointsAsync()
         {
             return BasicRetryAsync(() => Connection.GetEndPoints());
         }
-        
+
         public Task<IServer> GetServerAsync(string host, int port)
         {
             return BasicRetryAsync(() => Connection.GetServer(host, port));
@@ -239,12 +253,38 @@ namespace Fly.Common
             return await db.StringSetAsync(key, value);
         }
 
+        public async IAsyncEnumerator<KeyValuePair<TKey, TValue>> GetListAsync<TKey, TValue>(string key)
+        {
+            var db = await GetDatabaseAsync();
+            foreach (var hashKey in db.HashKeys(key))
+            {
+                var redisValue = db.HashGet(key, hashKey);
+                yield return new KeyValuePair<TKey, TValue>(Deserialize<TKey>(hashKey.ToString()), Deserialize<TValue>(redisValue.ToString()));
+            }
+        }
+
+        public async Task SetListAsync<TKey, TValue>(string key, IEnumerable<KeyValuePair<TKey, TValue>> keyValuePairs)
+        {
+            var db = await GetDatabaseAsync();
+
+            await db.HashSetAsync(key, keyValuePairs.Select(i => new HashEntry(Serialize(i.Key), Serialize(i.Value))).ToArray());
+        }
+
         public async Task<bool> SetExpireAsync<T>(string key, T data, TimeSpan expire)
         {
             var db = await GetDatabaseAsync();
             var value = JsonConvert.SerializeObject(data);
 
             return await db.StringSetAsync(key, value, expire);
+        }
+
+        private string Serialize(object obj)
+        {
+            return JsonConvert.SerializeObject(obj);
+        }
+        private T Deserialize<T>(string serialized)
+        {
+            return JsonConvert.DeserializeObject<T>(serialized);
         }
     }
 }
