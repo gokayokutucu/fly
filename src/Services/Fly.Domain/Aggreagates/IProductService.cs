@@ -5,5 +5,6 @@ namespace Fly.Domain.Aggreagates
 {
     public interface IProductService : IService<Product>
     {
+        Task<int> CountAsync(CancellationToken cancellationToken = default);
     }
 }

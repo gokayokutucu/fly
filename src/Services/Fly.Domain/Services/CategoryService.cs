@@ -31,7 +31,7 @@ namespace Fly.Domain.Services
 
         public async Task UpdateAsync(Category data, CancellationToken cancellationToken = default)
         {
-            await _categoryRepo.UnitOfWork.SaveAsync(data, Common.RecordOption.Update, null, null, cancellationToken);
+            await _categoryRepo.UnitOfWork.SaveAsync(data, Common.RecordOption.Upsert, null, null, cancellationToken);
         }
 
         public async Task DeleteAsync(string id, CancellationToken cancellationToken = default)

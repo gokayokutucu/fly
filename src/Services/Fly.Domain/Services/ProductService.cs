@@ -31,12 +31,17 @@ namespace Fly.Domain.Services
 
         public async Task UpdateAsync(Product data, CancellationToken cancellationToken = default)
         {
-            await _productRepo.UnitOfWork.SaveAsync(data, Common.RecordOption.Update, null, null, cancellationToken);
+            await _productRepo.UnitOfWork.SaveAsync(data, Common.RecordOption.Upsert, null, null, cancellationToken);
         }
 
         public async Task DeleteAsync(string id, CancellationToken cancellationToken = default)
         {
             await _productRepo.UnitOfWork.DeleteAsync<Product>(id, cancellationToken);
+        }
+
+        public async Task<int> CountAsync(CancellationToken cancellationToken = default)
+        {
+           return await _productRepo.UnitOfWork.CountAsync<Product>(null, null, cancellationToken);
         }
     }
 }
