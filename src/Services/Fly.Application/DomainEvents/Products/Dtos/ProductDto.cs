@@ -19,8 +19,8 @@ namespace Fly.Application.DomainEvents.Products.Dtos
 
         public void Mapping(Profile profile)
         {
-            profile.CreateMap<Category, CategoryDto>();
-            profile.CreateMap<Product, ProductDto>();
+            profile.CreateMap<Category, CategoryDto>().ReverseMap();
+            profile.CreateMap<Product, ProductDto>().ReverseMap();
         }
 
     }
