@@ -46,9 +46,9 @@ namespace Fly.Shopping.Controllers
         [ProducesResponseType(StatusCodes.Status201Created)]
         public async Task<IActionResult> Post(PostProductViewModel model)
         {
-            return Ok(await _mediator.Send(new CreateProductCommand()
+            return Ok(await _mediator.Send(new CreateProductNotification()
             {
-                ProductDto = _mapper.Map<ProductDto>(model)
+                ProductDto = _mapper.Map<CreateProductDto>(model)
             }));
         }
 

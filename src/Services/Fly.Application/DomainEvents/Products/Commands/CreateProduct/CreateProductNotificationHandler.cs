@@ -12,7 +12,42 @@ using Microsoft.Extensions.Logging;
 
 namespace Fly.Application.DomainEvents.Products.Commands.AddProduct
 {
-    public class CreateProductCommandHandler : IRequestHandler<CreateProductCommand>
+    public class CreateProductDatabaseNotificationHandler : INotificationHandler<CreateProductNotification>
+    {
+        private readonly ILogger _logger;
+        private readonly IMapper _mapper;
+        private readonly IProductService _productService;
+
+        public CreateProductDatabaseNotificationHandler(
+            ILogger<CreateProductDatabaseNotificationHandler> logger,
+            IMapper mapper,
+            IProductService productService)
+        {
+            _logger = logger;
+            _mapper = mapper;
+            _productService = productService;
+        }
+
+        public async Task Handle(CreateProductNotification notification, CancellationToken cancellationToken)
+        {
+            try
+            {
+                if (cancellationToken.IsCancellationRequested)
+                    return;
+
+                var entity = _mapper.Map<Product>(notification.ProductDto);
+
+                await _productService.CreateAsync(entity, cancellationToken);
+            }
+            catch (FlyException ex)
+            {
+                _logger.LogError(ex.Message, ex);
+                throw;
+            }
+        }
+    }
+    
+    public class CreateProductMemoryCacheNotificationHandler : INotificationHandler<CreateProductNotification>
     {
         private readonly ILogger _logger;
         private readonly ICacheManager _cacheManager;
@@ -20,8 +55,8 @@ namespace Fly.Application.DomainEvents.Products.Commands.AddProduct
         private readonly IProductService _productService;
         private readonly ICategoryService _categoryService;
 
-        public CreateProductCommandHandler(
-            ILogger<CreateProductCommandHandler> logger,
+        public CreateProductMemoryCacheNotificationHandler(
+            ILogger<CreateProductMemoryCacheNotificationHandler> logger,
             ICacheManager cacheManager,
             IMapper mapper,
             IProductService productService,
@@ -34,27 +69,21 @@ namespace Fly.Application.DomainEvents.Products.Commands.AddProduct
             _categoryService = categoryService;
         }
 
-        public async Task<Unit> Handle(CreateProductCommand request, CancellationToken cancellationToken)
+        public async Task Handle(CreateProductNotification notification, CancellationToken cancellationToken)
         {
             try
             {
                 if (cancellationToken.IsCancellationRequested)
-                    return Unit.Value;
+                    return;
+                
+                var keyName = $"product_{notification.ProductDto.Id}";
 
-                var entity = _mapper.Map<Product>(request.ProductDto);
-
-                await _productService.CreateAsync(entity, cancellationToken);
-
-                var aggregate = await SetAggregateAsync(entity);
-
-                var keyName = $"product_{entity.Id}";
+                var aggregate = await SetAggregateAsync(notification.ProductDto);
 
                 if (aggregate is not null)
                     await _cacheManager.SetExpireAsync(keyName, aggregate, TimeSpan.FromMinutes(5));
 
                 await UpdateCachedProductList(aggregate);
-                
-                return Unit.Value;
             }
             catch (FlyException ex)
             {
@@ -64,19 +93,17 @@ namespace Fly.Application.DomainEvents.Products.Commands.AddProduct
 
         }
 
-        private async Task<ProductDto> SetAggregateAsync(Product product)
+        private async Task<CreateProductDto> SetAggregateAsync(CreateProductDto aggregate)
         {
-            var aggregate = _mapper.Map<ProductDto>(product);
-            
-            var category = await _categoryService.GetAsync(product.CategoryId);
+            var category = await _categoryService.GetAsync(aggregate.CategoryId);
             aggregate.Category = _mapper.Map<CategoryDto>(category);
             
             return aggregate;
         }
 
-        private async Task UpdateCachedProductList(ProductDto dto)
+        private async Task UpdateCachedProductList(CreateProductDto dto)
         {
-            var dtos = await _cacheManager.GetAsync<List<ProductDto>>(nameof(GetAllProductsQuery));
+            var dtos = await _cacheManager.GetAsync<List<CreateProductDto>>(nameof(GetAllProductsQuery));
 
             if(dtos is not null)
             {

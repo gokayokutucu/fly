@@ -5,6 +5,6 @@ namespace Fly.Application.DomainEvents.Products.Commands.AddProduct
 {
     public class CreateProductNotification : INotification
     {
-        public ProductDto ProductDto { get; set; }
+        public CreateProductDto ProductDto { get; set; }
     }
 }
