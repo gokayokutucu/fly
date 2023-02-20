@@ -43,16 +43,16 @@ namespace Fly.Application.DomainEvents.Products.Commands.AddProduct
 
                 var entity = _mapper.Map<Product>(request.ProductDto);
 
-                await _productService.CreateAsync(entity);
+                await _productService.CreateAsync(entity, cancellationToken);
 
-                var dto = await SetDtoAsync(entity);
+                var aggregate = await SetAggregateAsync(entity);
 
                 var keyName = $"product_{entity.Id}";
 
-                if (dto is not null)
-                    await _cacheManager.SetExpireAsync(keyName, dto, TimeSpan.FromMinutes(5));
+                if (aggregate is not null)
+                    await _cacheManager.SetExpireAsync(keyName, aggregate, TimeSpan.FromMinutes(5));
 
-                await UpdateCachedProductList(dto);
+                await UpdateCachedProductList(aggregate);
 
                 return entity.Id;
             }
@@ -64,12 +64,14 @@ namespace Fly.Application.DomainEvents.Products.Commands.AddProduct
 
         }
 
-        private async Task<ProductDto> SetDtoAsync(Product product)
+        private async Task<ProductDto> SetAggregateAsync(Product product)
         {
-            var dto = _mapper.Map<ProductDto>(product);
+            var aggregate = _mapper.Map<ProductDto>(product);
+            
             var category = await _categoryService.GetAsync(product.CategoryId);
-            dto.Category = _mapper.Map<CategoryDto>(category);
-            return dto;
+            aggregate.Category = _mapper.Map<CategoryDto>(category);
+            
+            return aggregate;
         }
 
         private async Task UpdateCachedProductList(ProductDto dto)
