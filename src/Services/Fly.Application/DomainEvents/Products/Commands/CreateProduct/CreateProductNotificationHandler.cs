@@ -12,7 +12,7 @@ using Microsoft.Extensions.Logging;
 
 namespace Fly.Application.DomainEvents.Products.Commands.AddProduct
 {
-    public class CreateProductCommandHandler : IRequestHandler<CreateProductCommand, string>
+    public class CreateProductCommandHandler : IRequestHandler<CreateProductCommand>
     {
         private readonly ILogger _logger;
         private readonly ICacheManager _cacheManager;
@@ -34,12 +34,12 @@ namespace Fly.Application.DomainEvents.Products.Commands.AddProduct
             _categoryService = categoryService;
         }
 
-        public async Task<string> Handle(CreateProductCommand request, CancellationToken cancellationToken)
+        public async Task<Unit> Handle(CreateProductCommand request, CancellationToken cancellationToken)
         {
             try
             {
                 if (cancellationToken.IsCancellationRequested)
-                    return default;
+                    return Unit.Value;
 
                 var entity = _mapper.Map<Product>(request.ProductDto);
 
@@ -53,8 +53,8 @@ namespace Fly.Application.DomainEvents.Products.Commands.AddProduct
                     await _cacheManager.SetExpireAsync(keyName, aggregate, TimeSpan.FromMinutes(5));
 
                 await UpdateCachedProductList(aggregate);
-
-                return entity.Id;
+                
+                return Unit.Value;
             }
             catch (FlyException ex)
             {
