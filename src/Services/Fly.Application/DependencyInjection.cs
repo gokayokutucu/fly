@@ -20,7 +20,7 @@ namespace Fly.Application
             services.AddTransient(typeof(IPipelineBehavior<,>), typeof(RequestPreProcessorBehavior<,>));
             services.AddTransient(typeof(IPipelineBehavior<,>), typeof(RequestPerformanceBehaviour<,>));
             services.AddTransient(typeof(IPipelineBehavior<,>), typeof(RequestValidationBehavior<,>));
-            services.AddMediatR(typeof(CreateProductCommand).GetTypeInfo().Assembly);
+            services.AddMediatR(typeof(CreateProductNotification).GetTypeInfo().Assembly);
             #endregion
 
             return services;
