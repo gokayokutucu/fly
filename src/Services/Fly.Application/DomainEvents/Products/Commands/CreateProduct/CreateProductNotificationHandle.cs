@@ -39,10 +39,10 @@ namespace Fly.Application.DomainEvents.Products.Commands.AddProduct
 
                 await _productService.CreateAsync(entity, cancellationToken);
             }
-            catch (FlyException ex)
+            catch (Exception ex)
             {
                 _logger.LogError(ex.Message, ex);
-                throw;
+                throw new FlyException(ex.Message, ex);
             }
         }
     }
@@ -52,20 +52,17 @@ namespace Fly.Application.DomainEvents.Products.Commands.AddProduct
         private readonly ILogger _logger;
         private readonly ICacheManager _cacheManager;
         private readonly IMapper _mapper;
-        private readonly IProductService _productService;
         private readonly ICategoryService _categoryService;
 
         public CreateProductMemoryCacheNotificationHandler(
             ILogger<CreateProductMemoryCacheNotificationHandler> logger,
             ICacheManager cacheManager,
             IMapper mapper,
-            IProductService productService,
             ICategoryService categoryService)
         {
             _logger = logger;
             _cacheManager = cacheManager;
             _mapper = mapper;
-            _productService = productService;
             _categoryService = categoryService;
         }
 
@@ -85,10 +82,10 @@ namespace Fly.Application.DomainEvents.Products.Commands.AddProduct
 
                 await UpdateCachedProductList(aggregate);
             }
-            catch (FlyException ex)
+            catch (Exception ex)
             {
                 _logger.LogError(ex.Message, ex);
-                throw;
+                throw new FlyException(ex.Message, ex);;
             }
 
         }
